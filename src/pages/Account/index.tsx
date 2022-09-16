@@ -77,9 +77,9 @@ export const Account: React.FC<AccountProps> = (props) => {
     <MainBox
       content={renderContent()}
       bg={useColorModeValue("white", "gray.700")}
-      marginLeft={{ base: "0px", md: "200px" }}
-      marginRight={{ base: "0px", md: "200px" }}
-      marginTop={{ base: "0px", md: "50px" }}
+      marginLeft={{ base: "0px", lg: "200px" }}
+      marginRight={{ base: "0px", lg: "200px" }}
+      marginTop={{ base: "0px", lg: "50px" }}
     />
   );
 };

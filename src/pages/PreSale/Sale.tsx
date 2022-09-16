@@ -185,6 +185,7 @@ export const Sale: React.FC<SaleProps> = (props) => {
             >
               {listSaleStart.map((saleStart) => (
                 <Button
+                  key={saleStart.id}
                   colorScheme="teal"
                   size="sm"
                   variant={
