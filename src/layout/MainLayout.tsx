@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import {
   IconButton,
   Avatar,
@@ -29,6 +29,7 @@ import {
   UnorderedList,
   ListItem,
   useColorMode,
+  Button,
 } from "@chakra-ui/react";
 import {
   FiUser,
@@ -43,6 +44,11 @@ import { FaFire } from "react-icons/fa";
 import { IconType } from "react-icons";
 import { AppRoutes } from "../routes";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Const } from "../constants";
+import { Web3Provider } from "@ethersproject/providers";
+import { useWeb3React } from "@web3-react/core";
+import { Injected } from "../connectors";
+import Blockchain from "../uilts/Blockchain";
 
 interface LinkItemProps {
   name: string;
@@ -122,10 +128,10 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         </Text>
         <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
       </Flex>
-      {LinkItems.map((link) => {
+      {LinkItems.map((link, index) => {
         return (
           <NavItem
-            key={link.name}
+            key={link.path ?? "" + index}
             path={link.path ?? ""}
             icon={link.icon}
             list={link.children}
@@ -201,6 +207,7 @@ const NavItem = ({ icon, children, list, path, ...rest }: NavItemProps) => {
             <UnorderedList className="space-y-5">
               {list.map((item) => (
                 <ListItem
+                  key={item.path}
                   color={pathname === item.path ? "teal" : "gray.500"}
                   fontWeight={pathname === item.path ? "semibold" : "normal"}
                   onClick={() => navigate(item.path ?? "")}
@@ -245,6 +252,65 @@ interface MobileProps extends FlexProps {
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
   const { colorMode, toggleColorMode } = useColorMode();
 
+  const { account, active, activate, chainId } = useWeb3React<Web3Provider>();
+
+  const isLogin = true;
+
+  const handleSwitchNetwork = async () => {
+    if (active && Const.CHAIN_ID !== chainId) {
+      const rpcUrls =
+        Const.CHAIN_ID === 56
+          ? [
+              "https://bsc-dataseed1.binance.org/",
+              "https://bsc-dataseed2.binance.org/",
+              "https://bsc-dataseed4.binance.org/",
+            ]
+          : [
+              "https://data-seed-prebsc-1-s1.binance.org:8545/",
+              "https://data-seed-prebsc-2-s1.binance.org:8545/",
+              "http://data-seed-prebsc-2-s2.binance.org:8545/",
+            ];
+
+      try {
+        await (window as any).ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [
+            {
+              chainId: `0x${Const.CHAIN_ID.toString(16)}`,
+            },
+          ],
+        });
+      } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+          try {
+            await (window as any).ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: `0x${Const.CHAIN_ID.toString(16)}`,
+                  chainName: "Binance Smart Chain",
+                  rpcUrls: rpcUrls /* ... */,
+                },
+              ],
+            });
+          } catch (addError) {
+            // handle "add" error
+          }
+        }
+        // handle other "switch" errors
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleSwitchNetwork();
+  }, [chainId]);
+
+  const handleConnectMetamask = async () => {
+    await activate(Injected);
+  };
+
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
@@ -282,6 +348,21 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
           onClick={toggleColorMode}
           icon={colorMode === "dark" ? <FiSun /> : <FiMoon />}
         />
+
+        {isLogin && (
+          <Button
+            onClick={handleConnectMetamask}
+            colorScheme={active && chainId !== Const.CHAIN_ID ? "red" : "teal"}
+            variant="outline"
+          >
+            {active
+              ? chainId === Const.CHAIN_ID
+                ? Blockchain.formatAddress(account ?? "")
+                : "Wrong network"
+              : "Connect"}
+          </Button>
+        )}
+
         <Flex alignItems={"center"}>
           <Menu>
             <MenuButton
