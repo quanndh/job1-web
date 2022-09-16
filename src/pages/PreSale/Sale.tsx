@@ -24,6 +24,8 @@ import { GiSnail } from "react-icons/gi";
 import MainBox from "../../components/MainBox";
 import InputNumber from "../../components/InputNumber";
 import RPCBox from "../../components/RPCBox";
+import TableSale from "../../components/Table/TableSale";
+import LogItem from "../../components/Log/LogItem";
 
 const listSaleStart = [
   {
@@ -49,6 +51,15 @@ const listSaleStart = [
   {
     id: 6,
     label: "T - 1",
+  },
+];
+
+const logs = [
+  {
+    id: 1,
+    timestamp: "03:23:02 444",
+    type: "Warning",
+    error: "Alert: Amount is ZERO",
   },
 ];
 
@@ -224,6 +235,31 @@ export const Sale: React.FC<SaleProps> = (props) => {
     <>
       <RPCBox rpc={"Thread 1: RPC Node:https://bsc-dataseed.binance.org"} />
       <MainBox content={renderContent()} />
+      <MainBox
+        content={
+          <>
+            <TableSale data={[1, 2]} />
+            <Flex justifyContent="space-between" marginTop={4}>
+              <Text>Logs</Text>
+              <Button colorScheme="teal" variant="outline" size="sm">
+                CLEAR LOGS
+              </Button>
+            </Flex>
+            <Flex
+              marginTop={4}
+              bg={useColorModeValue("gray.100", "gray.700")}
+              p={2}
+              borderRadius="md"
+              height="280px"
+            >
+              {logs.map((log, index) => (
+                <LogItem key={index} item={log} />
+              ))}
+            </Flex>
+          </>
+        }
+        marginTop={4}
+      />
     </>
   );
 };

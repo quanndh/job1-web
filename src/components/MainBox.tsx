@@ -13,7 +13,8 @@ export const MainBox: React.FC<MainBoxProps> = (props) => {
       bg={useColorModeValue("white", "")}
       borderRightColor={useColorModeValue("gray.200", "gray.700")}
       borderRadius={8}
-      p={4}
+      px={4}
+      py={8}
       {...rest}
     >
       {content}
