@@ -12,11 +12,25 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "../../../routes";
+import { login } from "../../../service/Auth/auth.service";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { mutate, isLoading } = useMutation(login, {
+    onSuccess: (res) => {
+      localStorage.setItem("token", res?.data.token ?? "");
+      localStorage.setItem("user", JSON.stringify(res?.data.data));
+      navigate(AppRoutes.root);
+    },
+  });
+
   return (
     <Stack direction={{ base: "column", md: "row" }}>
       <Flex flex={1} justify="center" align="center" mt={20}>
@@ -32,14 +46,35 @@ export default function LoginScreen() {
             <Heading fontSize={"2xl"}>Sign in to your account</Heading>
             <FormControl id="email">
               <FormLabel>Email address</FormLabel>
-              <Input type="email" borderColor="gray.500" />
+              <Input
+                value={email}
+                type="email"
+                borderColor="gray.500"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
             </FormControl>
             <FormControl id="password">
               <FormLabel>Password</FormLabel>
-              <Input type="password" borderColor="gray.500" />
+              <Input
+                value={password}
+                type="password"
+                borderColor="gray.500"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+              />
             </FormControl>
             <Stack spacing={6}>
-              <Button colorScheme={"teal"} variant={"solid"}>
+              <Button
+                isLoading={isLoading}
+                colorScheme={"teal"}
+                variant={"solid"}
+                onClick={() => {
+                  mutate({ email, password });
+                }}
+              >
                 Sign in
               </Button>
             </Stack>
