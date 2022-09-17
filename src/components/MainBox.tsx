@@ -1,12 +1,10 @@
 import { Box, FlexProps, useColorModeValue } from "@chakra-ui/react";
 import React from "react";
 
-interface MainBoxProps extends FlexProps {
-  content: string | JSX.Element;
-}
+interface MainBoxProps extends FlexProps {}
 
 export const MainBox: React.FC<MainBoxProps> = (props) => {
-  const { content, className, ...rest } = props;
+  const { children, className, ...rest } = props;
 
   return (
     <Box
@@ -17,7 +15,7 @@ export const MainBox: React.FC<MainBoxProps> = (props) => {
       py={8}
       {...rest}
     >
-      {content}
+      {children}
     </Box>
   );
 };

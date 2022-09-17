@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { createRef, useRef, useState } from "react";
 import {
   Input,
   Button,
@@ -18,6 +18,7 @@ import InputNumber from "../../components/InputNumber";
 import RPCBox from "../../components/RPCBox";
 import TableSale from "../../components/Table/TableSale";
 import LogItem from "../../components/Log/LogItem";
+import Log from "../../components/Log";
 
 const listSaleStart = [
   {
@@ -46,19 +47,11 @@ const listSaleStart = [
   },
 ];
 
-const logs = [
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-];
-
 interface SaleProps {}
 
 export const Sale: React.FC<SaleProps> = (props) => {
   const {} = props;
+  const refInputUploadFile = createRef<HTMLInputElement>();
   const [list_private_key, setListPrivateKey] = useState("");
   const [select_day_start_sale, setSelectDayStartSale] = useState(4);
 
@@ -72,186 +65,176 @@ export const Sale: React.FC<SaleProps> = (props) => {
     setSelectDayStartSale(id);
   };
 
-  const renderContent = () => {
-    return (
-      <Flex flexDirection="column">
-        <Flex
-          mb={4}
-          justifyContent="space-between"
-          alignItems="center"
-          width="100%"
-          flexWrap="wrap"
-        >
-          <Select
-            placeholder="Select option"
-            width={{ base: "100%", md: "30%" }}
-            marginBottom={{ base: 4, md: 0 }}
-            border="none"
-            bg={useColorModeValue("gray.100", "gray.700")}
-          >
-            <option value="option1">Option 1</option>
-            <option value="option2">Option 2</option>
-            <option value="option3">Option 3</option>
-          </Select>
-
-          <Stack spacing={4} direction="row" align="center">
-            <Button colorScheme="red" size="sm">
-              <BsFillLightningChargeFill className="mr-2" />
-              <Text marginRight={4} display={{ base: "none", sm: "block" }}>
-                Fast
-              </Text>
-              <Text>0.0</Text>
-            </Button>
-            <Button colorScheme="purple" size="sm">
-              <FaWalking className="mr-2" />
-              <Text marginRight={4} display={{ base: "none", sm: "block" }}>
-                Normal
-              </Text>
-              <Text>0.0</Text>
-            </Button>
-            <Button colorScheme="green" size="sm">
-              <GiSnail className="mr-2" />
-              <Text marginRight={4} display={{ base: "none", sm: "block" }}>
-                Slow
-              </Text>
-              <Text>0.0</Text>
-            </Button>
-          </Stack>
-        </Flex>
-        <Flex justifyContent={{ base: "flex-start", md: "flex-end" }}>
-          <Stack spacing={4} direction="row" align="center">
-            <Button colorScheme="teal" variant="outline" size="sm">
-              <FaRegSave className="mr-2" />
-              SAVE LIST
-            </Button>
-            <Button colorScheme="teal" variant="outline" size="sm">
-              <AiOutlineCloudUpload className="mr-2" />
-              UPLOAD FILE
-            </Button>
-          </Stack>
-        </Flex>
-        <Flex marginTop={4} flexDirection={{ base: "column", md: "row" }}>
-          <Flex
-            flexDirection="column"
-            gap={2}
-            marginRight={4}
-            width={{ base: "100%", md: "60%" }}
-          >
-            <Text>List Private Key</Text>
-            <Textarea
-              style={{ minHeight: "280px" }}
-              value={list_private_key}
-              onChange={handleChangeListPrivateKey}
-              bg={useColorModeValue("gray.100", "gray.700")}
-              border="none"
-              placeholder="Here is a sample placeholder"
-              size="sm"
-            />
-          </Flex>
-
-          <Flex flexDirection="column" width={{ base: "100%", md: "40%" }}>
-            <Flex flexDirection="column" gap={2} paddingBottom={2}>
-              <Text>Presale Contract</Text>
-              <Input
-                placeholder="Input Presale Contract"
-                border="none"
-                bg={useColorModeValue("gray.100", "gray.700")}
-              />
-            </Flex>
-            <Flex flexDirection="column" gap={2} paddingBottom={2}>
-              <Text>Gas Price</Text>
-              <InputNumber value={0} onChange={() => {}} />
-            </Flex>
-            <Flex flexDirection="column" gap={2} paddingBottom={2}>
-              <Text>Gas Limit</Text>
-              <InputNumber value={0} onChange={() => {}} />
-            </Flex>
-            <Flex flexDirection="column" gap={2} paddingBottom={2}>
-              <Text>Gas BNB Amount</Text>
-              <InputNumber value={0} onChange={() => {}} />
-            </Flex>
-          </Flex>
-        </Flex>
-        <Flex marginTop={4} flexDirection="column">
-          <Text marginBottom={4}>Buy When Sale Start</Text>
-          <Flex
-            justifyContent="center"
-            marginBottom={4}
-            width={{ base: "100%", md: "auto" }}
-          >
-            <Stack
-              spacing={4}
-              direction="row"
-              justifyContent="center"
-              align="center"
-              width={{ base: "100%", md: "auto" }}
-            >
-              {listSaleStart.map((saleStart) => (
-                <Button
-                  key={saleStart.id}
-                  colorScheme="teal"
-                  size="sm"
-                  variant={
-                    select_day_start_sale === saleStart.id
-                      ? undefined
-                      : "outline"
-                  }
-                  onClick={() => {
-                    handleChangeSaleStart(saleStart.id);
-                  }}
-                >
-                  {saleStart.label}
-                </Button>
-              ))}
-            </Stack>
-          </Flex>
-          <Flex justifyContent="center">
-            <Stack spacing={4} direction="row" align="center">
-              <Button colorScheme="teal" size="sm">
-                Start
-              </Button>
-              <Button colorScheme="teal" size="sm">
-                Approve
-              </Button>
-              <Button colorScheme="teal" size="sm">
-                Sell
-              </Button>
-            </Stack>
-          </Flex>
-        </Flex>
-      </Flex>
-    );
-  };
-
   return (
     <>
       <RPCBox rpc={"Thread 1: RPC Node:https://bsc-dataseed.binance.org"} />
-      <MainBox content={renderContent()} />
-      <MainBox
-        content={
-          <>
-            <TableSale data={[1, 2]} />
-            <Flex justifyContent="space-between" marginTop={4}>
-              <Text>Logs</Text>
-              <Button colorScheme="teal" variant="outline" size="sm">
-                CLEAR LOGS
-              </Button>
-            </Flex>
-            <Flex
-              marginTop={4}
+      <MainBox>
+        <Flex flexDirection="column">
+          <Flex
+            mb={4}
+            justifyContent="space-between"
+            alignItems="center"
+            width="100%"
+            flexWrap="wrap"
+          >
+            <Select
+              placeholder="Select option"
+              width={{ base: "100%", md: "30%" }}
+              marginBottom={{ base: 4, md: 0 }}
+              border="none"
               bg={useColorModeValue("gray.100", "gray.700")}
-              p={2}
-              borderRadius="md"
-              height="280px"
             >
-              {logs.map((log, index) => (
-                <LogItem key={index} item={log} />
-              ))}
+              <option value="option1">Option 1</option>
+              <option value="option2">Option 2</option>
+              <option value="option3">Option 3</option>
+            </Select>
+
+            <Stack spacing={4} direction="row" align="center">
+              <Button colorScheme="red" size="sm">
+                <BsFillLightningChargeFill className="mr-2" />
+                <Text marginRight={4} display={{ base: "none", sm: "block" }}>
+                  Fast
+                </Text>
+                <Text>0.0</Text>
+              </Button>
+              <Button colorScheme="purple" size="sm">
+                <FaWalking className="mr-2" />
+                <Text marginRight={4} display={{ base: "none", sm: "block" }}>
+                  Normal
+                </Text>
+                <Text>0.0</Text>
+              </Button>
+              <Button colorScheme="green" size="sm">
+                <GiSnail className="mr-2" />
+                <Text marginRight={4} display={{ base: "none", sm: "block" }}>
+                  Slow
+                </Text>
+                <Text>0.0</Text>
+              </Button>
+            </Stack>
+          </Flex>
+          <Flex justifyContent={{ base: "flex-start", md: "flex-end" }}>
+            <Stack spacing={4} direction="row" align="center">
+              <Button colorScheme="teal" variant="outline" size="sm">
+                <FaRegSave className="mr-2" />
+                SAVE LIST
+              </Button>
+              <Button
+                colorScheme="teal"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  refInputUploadFile.current?.click();
+                }}
+              >
+                <AiOutlineCloudUpload className="mr-2" />
+                <Input type="file" ref={refInputUploadFile} display="none" />
+                UPLOAD FILE
+              </Button>
+            </Stack>
+          </Flex>
+          <Flex marginTop={4} flexDirection={{ base: "column", md: "row" }}>
+            <Flex
+              flexDirection="column"
+              gap={2}
+              marginRight={4}
+              width={{ base: "100%", md: "60%" }}
+            >
+              <Text>List Private Key</Text>
+              <Textarea
+                style={{ minHeight: "280px" }}
+                value={list_private_key}
+                onChange={handleChangeListPrivateKey}
+                bg={useColorModeValue("gray.100", "gray.700")}
+                border="none"
+                placeholder="Here is a sample placeholder"
+                size="sm"
+              />
             </Flex>
-          </>
-        }
-        marginTop={4}
-      />
+
+            <Flex flexDirection="column" width={{ base: "100%", md: "40%" }}>
+              <Flex flexDirection="column" gap={2} paddingBottom={2}>
+                <Text>Presale Contract</Text>
+                <Input
+                  placeholder="Input Presale Contract"
+                  border="none"
+                  bg={useColorModeValue("gray.100", "gray.700")}
+                />
+              </Flex>
+              <Flex flexDirection="column" gap={2} paddingBottom={2}>
+                <Text>Gas Price</Text>
+                <InputNumber value={0} onChange={() => {}} />
+              </Flex>
+              <Flex flexDirection="column" gap={2} paddingBottom={2}>
+                <Text>Gas Limit</Text>
+                <InputNumber value={0} onChange={() => {}} />
+              </Flex>
+              <Flex flexDirection="column" gap={2} paddingBottom={2}>
+                <Text>Gas BNB Amount</Text>
+                <InputNumber value={0} onChange={() => {}} />
+              </Flex>
+            </Flex>
+          </Flex>
+          <Flex marginTop={4} flexDirection="column">
+            <Text marginBottom={4}>Buy When Sale Start</Text>
+            <Flex
+              justifyContent="center"
+              marginBottom={4}
+              width={{ base: "100%", md: "auto" }}
+            >
+              <Stack
+                spacing={4}
+                direction="row"
+                justifyContent="center"
+                align="center"
+                width={{ base: "100%", md: "auto" }}
+              >
+                {listSaleStart.map((saleStart) => (
+                  <Button
+                    key={saleStart.id}
+                    colorScheme="teal"
+                    size="sm"
+                    variant={
+                      select_day_start_sale === saleStart.id
+                        ? undefined
+                        : "outline"
+                    }
+                    onClick={() => {
+                      handleChangeSaleStart(saleStart.id);
+                    }}
+                  >
+                    {saleStart.label}
+                  </Button>
+                ))}
+              </Stack>
+            </Flex>
+            <Flex justifyContent="center">
+              <Stack spacing={4} direction="row" align="center">
+                <Button colorScheme="teal" size="sm">
+                  Start
+                </Button>
+                <Button colorScheme="teal" size="sm">
+                  Approve
+                </Button>
+                <Button colorScheme="teal" size="sm">
+                  Sell
+                </Button>
+              </Stack>
+            </Flex>
+          </Flex>
+        </Flex>
+      </MainBox>
+
+      <MainBox marginTop={4}>
+        <TableSale data={[1, 2]} />
+        <Flex justifyContent="space-between" marginTop={4}>
+          <Text>Logs</Text>
+          <Button colorScheme="teal" variant="outline" size="sm">
+            CLEAR LOGS
+          </Button>
+        </Flex>
+        <Log />
+      </MainBox>
     </>
   );
 };

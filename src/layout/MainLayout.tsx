@@ -260,7 +260,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         aria-label="open menu"
         onClick={toggleColorMode}
         icon={colorMode === "dark" ? <FiSun /> : <FiMoon />}
-        display={{ base: "block", md: "none" }}
+        display={{ base: "flex", md: "none" }}
         className="flex justify-center"
         mx="8"
       />
@@ -471,7 +471,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
           aria-label="open menu"
           onClick={toggleColorMode}
           icon={colorMode === "dark" ? <FiSun /> : <FiMoon />}
-          display={{ base: "none", md: "block" }}
+          display={{ base: "none", md: "flex" }}
         />
 
         {isLogin && (
