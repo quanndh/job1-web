@@ -1,20 +1,12 @@
 import React, { useState } from "react";
 import {
-  Box,
   Input,
   Button,
   Flex,
-  Grid,
-  GridItem,
   Select,
   Stack,
   Text,
   Textarea,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaRegSave, FaWalking } from "react-icons/fa";
@@ -185,6 +177,7 @@ export const Sale: React.FC<SaleProps> = (props) => {
             >
               {listSaleStart.map((saleStart) => (
                 <Button
+                  key={saleStart.id}
                   colorScheme="teal"
                   size="sm"
                   variant={

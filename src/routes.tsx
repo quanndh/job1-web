@@ -23,12 +23,12 @@ interface IPageRoute {
 }
 
 export const PageRoutes: IPageRoute[] = [
-  { path: AppRoutes.root, element: <Account /> },
+  { path: AppRoutes.root, element: <Account />, private: true },
   { path: AppRoutes.signup, element: <SignupCard /> },
   { path: AppRoutes.login, element: <LoginScreen /> },
-  { path: AppRoutes.apesale, element: <Sale /> },
-  { path: AppRoutes.pinksale, element: <Sale /> },
-  { path: AppRoutes.unicrypt, element: <Sale /> },
-  { path: AppRoutes.gempad, element: <Sale /> },
-  { path: AppRoutes.pandasale, element: <Sale /> },
+  { path: AppRoutes.apesale, element: <Sale />, private: true },
+  { path: AppRoutes.pinksale, element: <Sale />, private: true },
+  { path: AppRoutes.unicrypt, element: <Sale />, private: true },
+  { path: AppRoutes.gempad, element: <Sale />, private: true },
+  { path: AppRoutes.pandasale, element: <Sale />, private: true },
 ];

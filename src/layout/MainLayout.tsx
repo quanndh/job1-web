@@ -111,6 +111,66 @@ interface SidebarProps extends BoxProps {
 }
 
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  const { account, active, activate, chainId } = useWeb3React<Web3Provider>();
+
+  const isLogin = true;
+
+  const handleSwitchNetwork = async () => {
+    if (active && Const.CHAIN_ID !== chainId) {
+      const rpcUrls =
+        Const.CHAIN_ID === 56
+          ? [
+              "https://bsc-dataseed1.binance.org/",
+              "https://bsc-dataseed2.binance.org/",
+              "https://bsc-dataseed4.binance.org/",
+            ]
+          : [
+              "https://data-seed-prebsc-1-s1.binance.org:8545/",
+              "https://data-seed-prebsc-2-s1.binance.org:8545/",
+              "http://data-seed-prebsc-2-s2.binance.org:8545/",
+            ];
+
+      try {
+        await (window as any).ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [
+            {
+              chainId: `0x${Const.CHAIN_ID.toString(16)}`,
+            },
+          ],
+        });
+      } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+          try {
+            await (window as any).ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: `0x${Const.CHAIN_ID.toString(16)}`,
+                  chainName: "Binance Smart Chain",
+                  rpcUrls: rpcUrls /* ... */,
+                },
+              ],
+            });
+          } catch (addError) {
+            // handle "add" error
+          }
+        }
+        // handle other "switch" errors
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleSwitchNetwork();
+  }, [chainId]);
+
+  const handleConnectMetamask = async () => {
+    await activate(Injected);
+  };
   return (
     <Box
       transition="3s ease"
@@ -124,10 +184,63 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
     >
       <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
         <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
-          EzDex
+          EzBot
         </Text>
         <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
       </Flex>
+
+      <Flex
+        alignItems={"center"}
+        display={{ base: "block", md: "none" }}
+        mx={8}
+        mb={4}
+      >
+        <Menu>
+          <MenuButton
+            py={2}
+            transition="all 0.3s"
+            _focus={{ boxShadow: "none" }}
+          >
+            <HStack>
+              <Avatar size={"sm"} />
+              <VStack alignItems="flex-start" spacing="1px" ml="2">
+                <Text color="white" fontSize="sm">
+                  Justina Clark
+                </Text>
+              </VStack>
+              <Box display={{ base: "none", md: "flex" }}>
+                <FiChevronDown />
+              </Box>
+            </HStack>
+          </MenuButton>
+          <MenuList
+            bg={useColorModeValue("white", "gray.900")}
+            borderColor={useColorModeValue("gray.200", "gray.700")}
+          >
+            <MenuItem>Profile</MenuItem>
+            <MenuDivider />
+            <MenuItem>Sign out</MenuItem>
+          </MenuList>
+        </Menu>
+      </Flex>
+
+      {isLogin && (
+        <Button
+          mb={4}
+          onClick={handleConnectMetamask}
+          colorScheme={active && chainId !== Const.CHAIN_ID ? "red" : "teal"}
+          variant="outline"
+          display={{ base: "block", md: "none" }}
+          mx="8"
+        >
+          {active
+            ? chainId === Const.CHAIN_ID
+              ? Blockchain.formatAddress(account ?? "")
+              : "Wrong network"
+            : "Connect to Metamask"}
+        </Button>
+      )}
+
       {LinkItems.map((link, index) => {
         return (
           <NavItem
@@ -140,6 +253,17 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
           </NavItem>
         );
       })}
+      <IconButton
+        size="lg"
+        mt={4}
+        variant="ghost"
+        aria-label="open menu"
+        onClick={toggleColorMode}
+        icon={colorMode === "dark" ? <FiSun /> : <FiMoon />}
+        display={{ base: "block", md: "none" }}
+        className="flex justify-center"
+        mx="8"
+      />
     </Box>
   );
 };
@@ -337,16 +461,17 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
         fontFamily="monospace"
         fontWeight="bold"
       >
-        EzDex
+        EzBot
       </Text>
 
-      <HStack spacing={{ base: "0", md: "6" }}>
+      <HStack spacing={{ base: "4" }}>
         <IconButton
           size="lg"
           variant="ghost"
           aria-label="open menu"
           onClick={toggleColorMode}
           icon={colorMode === "dark" ? <FiSun /> : <FiMoon />}
+          display={{ base: "none", md: "block" }}
         />
 
         {isLogin && (
@@ -354,6 +479,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
             onClick={handleConnectMetamask}
             colorScheme={active && chainId !== Const.CHAIN_ID ? "red" : "teal"}
             variant="outline"
+            display={{ base: "none", md: "block" }}
           >
             {active
               ? chainId === Const.CHAIN_ID
@@ -363,7 +489,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
           </Button>
         )}
 
-        <Flex alignItems={"center"}>
+        <Flex alignItems={"center"} display={{ base: "none", md: "display" }}>
           <Menu>
             <MenuButton
               py={2}
@@ -390,8 +516,6 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
               borderColor={useColorModeValue("gray.200", "gray.700")}
             >
               <MenuItem>Profile</MenuItem>
-              <MenuItem>Settings</MenuItem>
-              <MenuItem>Billing</MenuItem>
               <MenuDivider />
               <MenuItem>Sign out</MenuItem>
             </MenuList>
