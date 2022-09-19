@@ -36,7 +36,7 @@ export const TableAccount: React.FC<TableAccountProps> = (props) => {
         </Thead>
         <Tbody>
           {data.map((item: any, index: number) => (
-            <Tr>
+            <Tr key={index}>
               <Td>
                 <Link>
                   <Text color={useColorModeValue("teal", "teal.200")}>Id</Text>

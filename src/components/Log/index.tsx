@@ -1,100 +1,27 @@
 import { Flex, useColorModeValue } from "@chakra-ui/react";
 import React from "react";
+import { Log as ILog } from "../../uilts/Log";
 import LogItem from "./LogItem";
 
-const logs = [
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-  {
-    id: 1,
-    timestamp: "03:23:02 444",
-    type: "Warning",
-    error: "Alert: Amount is ZERO",
-  },
-];
+interface LogProps {
+  logs: ILog[];
+}
 
-interface LogProps {}
-
-export const Log: React.FC<LogProps> = (props) => {
-  const {} = props;
-
+export const Log: React.FC<LogProps> = ({ logs }) => {
   return (
     <Flex
       marginTop={4}
       bg={useColorModeValue("gray.100", "gray.700")}
       p={2}
       borderRadius="md"
+      minH="280px"
       maxH="280px"
       flexDirection="column"
       overflow="auto"
     >
-      {logs.map((log, index) => (
-        <LogItem key={index} item={log} />
-      ))}
+      {logs
+        ? logs.map((log, index) => <LogItem key={index} item={log} />)
+        : null}
     </Flex>
   );
 };

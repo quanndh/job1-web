@@ -1,7 +1,12 @@
 import axios from "axios";
 import { Const } from "../constants";
 
-const http_client = axios.create({ baseURL: Const.API_URL });
+const http_client = axios.create({
+  baseURL: Const.API_URL,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+  },
+});
 class HttpClientHelper {
   async get<T>(endpoint: string) {
     try {
@@ -35,7 +40,7 @@ class HttpClientHelper {
     } catch (ex) {}
   }
 
-  async delete<T, U = {}>(endpoint: string, payload?: U, idParam?: number) {
+  async delete<T, U = {}>(endpoint: string, payload?: any, idParam?: number) {
     try {
       const response = await http_client.delete<T>(endpoint, payload);
       return response;

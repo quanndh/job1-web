@@ -19,10 +19,10 @@ export const InputNumber: React.FC<InputNumberProps> = (props) => {
 
   return (
     <NumberInput
-      //   value={value}
-      //   onChange={(value) => {
-      //     onChange(Number(value));
-      //   }}
+      value={value}
+      onChange={(value) => {
+        onChange(Number(value));
+      }}
       min={0}
       name="bnb_amount"
       display="flex"

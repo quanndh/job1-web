@@ -1,4 +1,4 @@
-import React, { createRef, useRef, useState } from "react";
+import React, { createRef, useEffect, useState } from "react";
 import {
   Input,
   Button,
@@ -8,6 +8,7 @@ import {
   Text,
   Textarea,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
 import { FaRegSave, FaWalking } from "react-icons/fa";
 import { AiOutlineCloudUpload } from "react-icons/ai";
@@ -17,46 +18,117 @@ import MainBox from "../../components/MainBox";
 import InputNumber from "../../components/InputNumber";
 import RPCBox from "../../components/RPCBox";
 import TableSale from "../../components/Table/TableSale";
-import LogItem from "../../components/Log/LogItem";
 import Log from "../../components/Log";
-import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
-import { ApiHelper } from "../../helper/http";
+import moment from "moment";
+import Blockchain from "../../uilts/Blockchain";
+import LogUtils, { Log as ILog } from "../../uilts/Log";
+import { useParams } from "react-router-dom";
+import { ethers } from "ethers";
 
 const listSaleStart = [
   {
-    id: 1,
+    id: 6,
     label: "T - 6",
   },
   {
-    id: 2,
+    id: 5,
     label: "T - 5",
   },
   {
-    id: 3,
+    id: 4,
     label: "T - 4",
   },
   {
-    id: 4,
+    id: 3,
     label: "T - 3",
   },
   {
-    id: 5,
+    id: 2,
     label: "T - 2",
   },
   {
-    id: 6,
+    id: 1,
     label: "T - 1",
   },
 ];
 
+export interface Job {
+  id: number;
+  privateKey: string;
+  address: string;
+  contract: string;
+  value: number;
+  gasLimit: number;
+  gasPrice: number;
+  startAt: number;
+  status: string;
+}
+
 interface SaleProps {}
 
+let loop: any;
+
 export const Sale: React.FC<SaleProps> = (props) => {
-  const {} = props;
+  const params = useParams();
+
+  const type = params.type as "apesale" | "pinksale";
+
+  const toast = useToast();
   const refInputUploadFile = createRef<HTMLInputElement>();
+
+  const [rpc, setRpc] = useState("https://bsc-dataseed.binance.org");
+
   const [list_private_key, setListPrivateKey] = useState("");
-  const [select_day_start_sale, setSelectDayStartSale] = useState(4);
+  const [contract, setContract] = useState("");
+  const [value, setValue] = useState(0);
+  const [gasLimit, setGasLimit] = useState(200000);
+  const [gasPrice, setGasPrice] = useState(0);
+
+  const [startBefore, setSelectDayStartSale] = useState(4);
+
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [logs, setLogs] = useState<ILog[]>([]);
+
+  const reset = async () => {
+    setJobs([]);
+    setContract("");
+    setValue(0);
+    setGasLimit(200000);
+    setGasPrice(0);
+    setListPrivateKey("");
+    LogUtils.clear(setLogs);
+  };
+
+  useEffect(() => {
+    reset();
+  }, [type]);
+
+  useEffect(() => {
+    loop = setInterval(async () => {
+      const jobToProcess = jobs.filter(
+        (job) => job.startAt === moment().unix() && job.status === "Waiting"
+      );
+
+      if (jobToProcess.length) {
+        const res = await Blockchain.processJobs(jobToProcess, type);
+
+        const updateJobs = [...jobs];
+
+        res.forEach((x: any) => {
+          const index = updateJobs.findIndex((job) => job.id === x.id);
+          if (index !== -1) {
+            updateJobs[index]["status"] = x.status;
+          }
+        });
+
+        setJobs(updateJobs);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(loop);
+    };
+  }, [jobs, setJobs]);
 
   const handleChangeListPrivateKey = (
     event: React.ChangeEvent<HTMLTextAreaElement>
@@ -68,9 +140,126 @@ export const Sale: React.FC<SaleProps> = (props) => {
     setSelectDayStartSale(id);
   };
 
+  const handleAddJob = async () => {
+    if (gasPrice === 0) {
+      toast({
+        title: "Error",
+        description: "Gas price must larger than 0",
+        status: "error",
+      });
+
+      return;
+    }
+
+    const privateKeys = list_private_key.split("\n");
+
+    if (!privateKeys.length) return;
+
+    const keyAddressMap = new Map<string, string>();
+
+    const newJobs: Job[] = [...jobs];
+
+    for (const key of privateKeys) {
+      const exist = newJobs.find(
+        (x) => x.privateKey === key && x.contract === contract
+      );
+      if (!exist) {
+        let address = keyAddressMap.get(key);
+        if (!address) {
+          try {
+            const wallet = new ethers.Wallet(key);
+            address = wallet.address;
+            keyAddressMap.set(key, address);
+          } catch (error: any) {
+            LogUtils.add(
+              {
+                content: error.message,
+                type: "Error",
+                timestamp: moment().valueOf(),
+              },
+              setLogs
+            );
+            continue;
+          }
+        }
+
+        if (value === 0) {
+          LogUtils.add(
+            {
+              content: `Amount is Zero`,
+              type: "Warning",
+              timestamp: moment().valueOf(),
+            },
+            setLogs
+          );
+        }
+
+        try {
+          const startTime = await Blockchain.getPresaleStartTime(
+            type,
+            contract,
+            rpc
+          );
+          if (!startTime) continue;
+
+          if (startTime < moment().unix()) {
+            LogUtils.add(
+              {
+                content: `Presale has end ${moment(startTime * 1e3).fromNow()}`,
+                type: "Error",
+                timestamp: moment().valueOf(),
+              },
+              setLogs
+            );
+            continue;
+          }
+
+          newJobs.push({
+            id: newJobs.length,
+            privateKey: key,
+            address,
+            contract,
+            value,
+            gasLimit,
+            gasPrice,
+            startAt: startTime,
+            status: "Waiting",
+          });
+        } catch (error: any) {
+          LogUtils.add(
+            {
+              content: error.message,
+              type: "Error",
+              timestamp: moment().valueOf(),
+            },
+            setLogs
+          );
+          continue;
+        }
+      } else {
+        toast({
+          title: contract,
+          description: `${key} has existed`,
+          status: "error",
+          isClosable: true,
+        });
+      }
+    }
+    setJobs(newJobs);
+  };
+
+  const handleDeleteJob = (id: number) => {
+    const remain = jobs.filter((x) => x.id !== id);
+    setJobs(remain);
+  };
+
+  const handleClearLog = () => {
+    LogUtils.clear(setLogs);
+  };
+
   return (
     <>
-      <RPCBox rpc={"Thread 1: RPC Node:https://bsc-dataseed.binance.org"} />
+      <RPCBox rpc={`Thread 1: RPC Node:${rpc}`} />
       <MainBox>
         <Flex flexDirection="column">
           <Flex
@@ -150,7 +339,7 @@ export const Sale: React.FC<SaleProps> = (props) => {
                 onChange={handleChangeListPrivateKey}
                 bg={useColorModeValue("gray.100", "gray.700")}
                 border="none"
-                placeholder="Here is a sample placeholder"
+                placeholder="Input your secret keys. Each key on a different line. Key must not start with 0x"
                 size="sm"
               />
             </Flex>
@@ -162,19 +351,36 @@ export const Sale: React.FC<SaleProps> = (props) => {
                   placeholder="Input Presale Contract"
                   border="none"
                   bg={useColorModeValue("gray.100", "gray.700")}
+                  value={contract}
+                  onChange={(e) => setContract(e.target.value.trim())}
                 />
               </Flex>
               <Flex flexDirection="column" gap={2} paddingBottom={2}>
                 <Text>Gas Price</Text>
-                <InputNumber value={0} onChange={() => {}} />
+                <InputNumber
+                  value={gasPrice}
+                  onChange={(e) => {
+                    setGasPrice(e);
+                  }}
+                />
               </Flex>
               <Flex flexDirection="column" gap={2} paddingBottom={2}>
                 <Text>Gas Limit</Text>
-                <InputNumber value={0} onChange={() => {}} />
+                <InputNumber
+                  value={gasLimit}
+                  onChange={(e) => {
+                    setGasLimit(e);
+                  }}
+                />
               </Flex>
               <Flex flexDirection="column" gap={2} paddingBottom={2}>
                 <Text>Gas BNB Amount</Text>
-                <InputNumber value={0} onChange={() => {}} />
+                <InputNumber
+                  value={value}
+                  onChange={(e) => {
+                    setValue(e);
+                  }}
+                />
               </Flex>
             </Flex>
           </Flex>
@@ -198,9 +404,7 @@ export const Sale: React.FC<SaleProps> = (props) => {
                     colorScheme="teal"
                     size="sm"
                     variant={
-                      select_day_start_sale === saleStart.id
-                        ? undefined
-                        : "outline"
+                      startBefore === saleStart.id ? undefined : "outline"
                     }
                     onClick={() => {
                       handleChangeSaleStart(saleStart.id);
@@ -213,7 +417,7 @@ export const Sale: React.FC<SaleProps> = (props) => {
             </Flex>
             <Flex justifyContent="center">
               <Stack spacing={4} direction="row" align="center">
-                <Button colorScheme="teal" size="sm">
+                <Button colorScheme="teal" size="sm" onClick={handleAddJob}>
                   Start
                 </Button>
                 <Button colorScheme="teal" size="sm">
@@ -229,14 +433,19 @@ export const Sale: React.FC<SaleProps> = (props) => {
       </MainBox>
 
       <MainBox marginTop={4}>
-        <TableSale data={[1, 2]} />
-        <Flex justifyContent="space-between" marginTop={4}>
+        <TableSale data={jobs} handleDelete={handleDeleteJob} />
+        <Flex justifyContent="space-between" marginTop={8}>
           <Text>Logs</Text>
-          <Button colorScheme="teal" variant="outline" size="sm">
+          <Button
+            colorScheme="teal"
+            variant="outline"
+            size="sm"
+            onClick={handleClearLog}
+          >
             CLEAR LOGS
           </Button>
         </Flex>
-        <Log />
+        <Log logs={logs} />
       </MainBox>
     </>
   );

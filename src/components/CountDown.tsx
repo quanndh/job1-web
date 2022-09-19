@@ -2,10 +2,12 @@ import React from "react";
 import { Text, useColorModeValue } from "@chakra-ui/react";
 import Countdown from "react-countdown";
 
-interface CountDownProps {}
+interface CountDownProps {
+  date: number;
+}
 
 export const CountDown: React.FC<CountDownProps> = (props) => {
-  const {} = props;
+  const { date } = props;
   const color = useColorModeValue("teal", "teal.200");
 
   const renderer = ({
@@ -29,7 +31,7 @@ export const CountDown: React.FC<CountDownProps> = (props) => {
     );
   };
 
-  return <Countdown date={Date.now() + 10000} renderer={renderer} />;
+  return <Countdown date={date} renderer={renderer} />;
 };
 
 export default CountDown;

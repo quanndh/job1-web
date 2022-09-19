@@ -64,9 +64,9 @@ const LinkItems: Array<LinkItemProps> = [
     children: [
       { name: "ApeSale", path: AppRoutes.apesale },
       { name: "PinkSale", path: AppRoutes.pinksale },
-      { name: "Unicrypt", path: AppRoutes.unicrypt },
+      // { name: "Unicrypt", path: AppRoutes.unicrypt },
       { name: "Gempad", path: AppRoutes.gempad },
-      { name: "Pandasale", path: AppRoutes.pandasale },
+      // { name: "Pandasale", path: AppRoutes.pandasale },
     ],
   },
   { name: "Settings", icon: FiSettings },
